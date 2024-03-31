@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int partition_table_start = 446;
+
 int main() {
     FILE * in = fopen("test.img", "rb");
     unsigned int i, start_sector, length_sectors;
 
-    fseek(in, 446, SEEK_SET); /* colocamos el puntero en el byte 446 */
+    fseek(in, partition_table_start, SEEK_SET); // nos dirigmos al byte
+						// donde comienzan las particiones
 
     for(i=0; i<4; i++) {
         printf("Partition entry %d: First byte %02X\n", i, fgetc(in));

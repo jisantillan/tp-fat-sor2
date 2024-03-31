@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int partition_table_start = 446;
+
 typedef struct {
     unsigned char first_byte;
     unsigned char start_chs[3];
@@ -45,7 +47,7 @@ int main() {
     
     
     //lo hardcodee, ver forma de obtener el 446
-    fseek(in, 446 , SEEK_SET); // Ir al inicio de la tabla de particiones. Completar ...
+    fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones. Completar ...
     fread(pt, sizeof(PartitionTable), 4, in); // leo entradas 
     
     for(i=0; i<4; i++) {        
