@@ -5,14 +5,7 @@ int main() {
     FILE * in = fopen("test.img", "rb");
     unsigned int i, start_sector, length_sectors;
 
-    fseek(in, 000, SEEK_SET);
-
-   puts("Bootstrap code area:");
-    for (i=0; i<446;i++){
-	printf("%02X ", fgetc(in));
-/*	printf("byte numero: %d\n", i);*/
-   }
-    puts("\nPartition entries:");
+    fseek(in, 446, SEEK_SET); /* colocamos el puntero en el byte 446 */
 
     for(i=0; i<4; i++) {
         printf("Partition entry %d: First byte %02X\n", i, fgetc(in));
@@ -24,12 +17,6 @@ int main() {
         fread(&length_sectors, 4, 1, in);
         printf("  Dirección LBA relativa 0x%08X, de tamaño en sectores %d\n", start_sector, length_sectors);
     }
-
-    puts("Boot signature:  ");
-    for(i=0; i<2;i++){
-	printf("%02X ", fgetc(in));
-    }
-    puts("");
 
     fclose(in);
     return 0;
