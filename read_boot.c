@@ -22,14 +22,14 @@ typedef struct {
     unsigned char num_of_fat;
     unsigned short max_num_of_files_in_root;
     unsigned short num_of_sectors_in_fs;
-    char media_type;
+    unsigned char media_type;
     unsigned short fat_size;
     unsigned short sectors_per_track;
     unsigned short heads;
     unsigned int num_of_sectors_before_start_partition;
     unsigned int fs_sectors;
-    char drive_number;
-    char not_used; //xd
+    unsigned char drive_number;
+    unsigned char not_used; //xd
     char extended_boot_signature;
     //
     unsigned int volume_id;
@@ -77,11 +77,11 @@ int main() {
     printf("  Number of sectors in the file system: %d\n", bs.num_of_sectors_in_fs);
     printf("  Media type: %02X\n", bs.media_type);
     printf("  Size of each FAT, in sectors: %d\n", bs.fat_size);
-    printf("  Number per track in storage device: %d\n", bs.sectors_per_track);
+    printf("  Number of sectors per track in storage device: %d\n", bs.sectors_per_track);
     printf("  Number of heads in storage device: %d\n", bs.heads);
     printf("  Number of sectors before the start partition: %d\n", bs.num_of_sectors_before_start_partition);
     printf("  Number of sectors in the file system: %d\n", bs.fs_sectors);
-    printf("  BIOS INT 13h drivce number: %02X\n", bs.drive_number);
+    printf("  BIOS INT 13h drive number: %02X\n", bs.drive_number);
     printf("  Byte not used: %02X\n", bs.not_used);
     printf("  Extended boot signature: %02X\n", bs.extended_boot_signature);
     //
