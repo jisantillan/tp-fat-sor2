@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 static int partition_table_start = 446;
+static int contador_archivos = 0;
 
 typedef struct {
     unsigned char first_byte;
@@ -109,33 +110,38 @@ void print_file_info(Fat12Entry *entry) {
     switch(entry->filename[0]) {
     case 0x00:
         return; // unused entry
-    case 0xE5: // Completar los ...
+    case 0xE5:
         if(is_valid_filename(entry)){
-            printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension); // COMPLETAR
+            printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension);
             // print_file(entry);
         }
         return;
-    case 0x05: // Completar los ...
+    case 0x05:
         if(is_valid_filename(entry)){
-            printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension); // COMPLETAR 
+            printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension);
             // print_file(entry);
         }
         break;
-    case 0x2E: // Completar los ...
+    case 0x2E:
         if(is_valid_filename(entry)){
-            printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);// COMPLETAR 
+            printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
             // printf("  Segundo byte: %02X\n", entry->filename[1]);
             // print_file(entry);
         }
         break;
     default:
         if(is_valid_filename(entry)){
-            printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension); // COMPLETAR 
-            // print_file(entry);
+	    if (entry->attributes == 32) { // 32 es 20 es hexa
+                printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension);
+		contador_archivos++;
+	    }
+	    if (entry->attributes == 16) { // 16 es 10 en hexa
+	         printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
+	    }
+             //print_file(entry);
         }
         return;
     }
-    
 }
 
 //Funcion para ver algunos datos de la particion, copiado de read_mbr
@@ -154,12 +160,12 @@ int main() {
     PartitionTable pt[4];
     Fat12BootSector bs;
     Fat12Entry entry;
-   
-	//{...} Completar 
+
+	//{...} Completar
     fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones. Completar ...
-    fread(pt, sizeof(PartitionTable), 4, in); // leo entradas 
-    
-    for(i=0; i<4; i++) {        
+    fread(pt, sizeof(PartitionTable), 4, in); // leo entradas
+
+    for(i=0; i<4; i++) {
         if(pt[i].partition_type == 1) {
             printf("Encontrada particion FAT12 %d\n", i);
             print_partition(&pt[i]);
@@ -167,28 +173,28 @@ int main() {
             break;
         }
     }
-    
+
     if(i == 4) {
         printf("No encontrado filesystem FAT12, saliendo...\n");
         return -1;
     }
-    
+
     fseek(in, 0, SEEK_SET);
 	//{...} Leo boot sector
     fread(&bs, sizeof(Fat12BootSector), 1, in);//Completar luego...
-    
+
     printf("En  0x%X, sector size %d, FAT size %d sectors, %d FATs, position to start reading: %d\n\n", 
            ftell(in), bs.sector_size, bs.fat_size_sectors, bs.number_of_fats, ((bs.reserved_sectors-1 + bs.fat_size_sectors * bs.number_of_fats) * bs.sector_size));
-           
+
     fseek(in, (bs.reserved_sectors-1 + bs.fat_size_sectors * bs.number_of_fats) *
           bs.sector_size, SEEK_CUR);
-    
+
     printf("Root dir_entries %d \n", bs.root_dir_entries);
     for(i=0; i<bs.root_dir_entries; i++) {
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
     }
-    
+
     printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
 
     int j;
@@ -197,6 +203,7 @@ int main() {
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
     }
+    printf("Se encontraron %d archivos. \n", contador_archivos);
     fclose(in);
     return 0;
 }
