@@ -59,28 +59,80 @@ typedef struct {
     unsigned int file_size;
 } __attribute((packed)) Fat12Entry;
 
+//Devuelve 1 si es valido, 0 si es invalido
+//TODO ver si este criterio mas el de is_valid_filename es suficiente para identificar archivos/directorios
+int is_valid_filename_character(unsigned char *c){
+    int ret = 1;
+    char padding = 0x20;     //caracter que representa el espacio con el que se rellena el filename/extension del archivo/directorio
+    char first_lowercase_letter = 0x61;
+    char last_uppercase_letter = 0x7A;
+    //si no es paddin y esta dentro del rango de letras minusculas... mejorar la logica para que se lea mejor
+    if(*c != padding && (*c >= first_lowercase_letter && *c <= last_uppercase_letter)){
+        ret = 0;
+    }
+    return ret;
+}
+
+//Devuelve 1 si es valido, 0 si es invalido
+//Sabemos que una entrada del directory entry, dentro de filename y extension no puede terminar en 0x00 o null, entonces usamos eso para filtrar los que no sean 
+//archivos/directorios, ademas de que tienen que estar todos en uppercase
+int is_valid_filename(Fat12Entry *entry){
+    // printf("ANALIZANDO: [%.8s.%.3s]\n", entry->filename, entry->extension);
+    int ret = 1;
+    if(entry->extension[2] == 0x00){
+        ret = 0;
+    }
+    else{
+        int i;
+        for(i = 0; i < 8; i++){
+            if(!is_valid_filename_character(&entry->filename[i])){
+                ret = 0;
+                break;
+            }
+        }
+        for(i = 0; i < 3; i++){
+            if(!is_valid_filename_character(&entry->extension[i])){
+                 ret = 0;
+                  break;
+            }
+        }
+    }
+    return ret;
+}
+
+void print_file(Fat12Entry *entry){
+    printf("  File Size[%d]\n", entry->file_size);
+    printf("  First cluster number LSB: %X - 0x%02X\n", entry->first_cluster_number_LSB, entry->first_cluster_number_LSB);
+}
+
 void print_file_info(Fat12Entry *entry) {
     switch(entry->filename[0]) {
     case 0x00:
         return; // unused entry
     case 0xE5: // Completar los ...
-        // printf("%02X - %c - %X - ", entry->filename[0], entry->filename[0], entry->filename[0]);
-        printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension); // COMPLETAR
-        // printf("first cluster number MSB: %X\nfirst cluster number lsb: %X\n", entry->first_cluster_number_MSB, entry->first_cluster_number_LSB);
+        if(is_valid_filename(entry)){
+            printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension); // COMPLETAR
+            // print_file(entry);
+        }
         return;
     case 0x05: // Completar los ...
-        printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension); // COMPLETAR 
-        // printf("first cluster number MSB: %X\nfirst cluster number lsb: %X\n", entry->first_cluster_number_MSB, entry->first_cluster_number_LSB);
+        if(is_valid_filename(entry)){
+            printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension); // COMPLETAR 
+            // print_file(entry);
+        }
         break;
     case 0x2E: // Completar los ...
-        // printf("%02X - %c - %X - ", entry->filename[0], entry->filename[0], entry->filename[0]);
-        printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);// COMPLETAR 
-        printf("Segundo byte: %02X\n", entry->filename[1]);
-        printf("first cluster number lsb: %X - 0x%01X\n", entry->first_cluster_number_LSB, entry->first_cluster_number_LSB);
+        if(is_valid_filename(entry)){
+            printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);// COMPLETAR 
+            // printf("  Segundo byte: %02X\n", entry->filename[1]);
+            // print_file(entry);
+        }
         break;
     default:
-        printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension); // COMPLETAR 
-        // printf("first cluster number MSB: %X\nfirst cluster number lsb: %X\n", entry->first_cluster_number_MSB, entry->first_cluster_number_LSB);
+        if(is_valid_filename(entry)){
+            printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension); // COMPLETAR 
+            // print_file(entry);
+        }
         return;
     }
     
@@ -133,20 +185,15 @@ int main() {
     
     printf("Root dir_entries %d \n", bs.root_dir_entries);
     for(i=0; i<bs.root_dir_entries; i++) {
-        // printf("Ahora en 0x%X\n", ftell(in));
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
     }
     
     printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
-    //cuantos sectores me faltan? lei el boot_sector, que son 512 (1 sector)
-    //me desplace 2048 posiciones desde ahi (osea 4 sectores)
-    //y luego lei el root, otros 512 (1 sector)
-    //entonces me quedan por leer num_of_sectors_in_fs - (1 + 4 + 1) = num_of_sectors_in_fs - 6
-    //NOTA: creo que esto de arriba comentado es incorrecto, ya que estoy leyendo tambien el contenido de algunos archivos, ver como arreglar eso...
+
     int j;
-    //TODO poner el 6 en alguna constante...
-    for(j=0; j < bs.num_of_sectors_in_fs - 6; j++){
+    //TODO Ver bien hasta donde deberia leer en esta parte... no es correcto root_dir_entries entiendo...
+    for(j=0; j < bs.root_dir_entries; j++){
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
     }
