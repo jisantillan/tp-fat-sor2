@@ -60,13 +60,14 @@ typedef struct {
     unsigned int file_size;
 } __attribute((packed)) Fat12Entry;
 
-//Devuelve 1 si es valido, 0 si es invalido
-//TODO ver si este criterio mas el de is_valid_filename es suficiente para identificar archivos/directorios
+/* Devuelve 1 si es valido, 0 si es invalido
+TODO ver si este criterio mas el de is_valid_filename es suficiente para identificar archivos/directorios */
 int is_valid_filename_character(unsigned char *c){
     int ret = 1;
     char padding = 0x20;     //caracter que representa el espacio con el que se rellena el filename/extension del archivo/directorio
     char first_lowercase_letter = 0x61;
     char last_uppercase_letter = 0x7A;
+    
     //si no es paddin y esta dentro del rango de letras minusculas... mejorar la logica para que se lea mejor
     if(*c != padding && (*c >= first_lowercase_letter && *c <= last_uppercase_letter)){
         ret = 0;
@@ -74,10 +75,11 @@ int is_valid_filename_character(unsigned char *c){
     return ret;
 }
 
-//Devuelve 1 si es valido, 0 si es invalido
-//Sabemos que una entrada del directory entry, dentro de filename y extension no puede terminar en 0x00 o null, entonces usamos eso para filtrar los que no sean 
-//archivos/directorios, ademas de que tienen que estar todos en uppercase
+/* Devuelve 1 si es valido, 0 si es invalido
+    Sabemos que una entrada del directory entry, dentro de filename y extension no puede terminar en 0x00 o null, 
+    entonces usamos eso para filtrar los que no sean archivos/directorios, ademas de que tienen que estar todos en uppercase */
 int is_valid_filename(Fat12Entry *entry){
+    
     // printf("ANALIZANDO: [%.8s.%.3s]\n", entry->filename, entry->extension);
     int ret = 1;
     if(entry->extension[2] == 0x00){
@@ -144,7 +146,7 @@ void print_file_info(Fat12Entry *entry) {
     }
 }
 
-//Funcion para ver algunos datos de la particion, copiado de read_mbr
+/* Funcion para ver algunos datos de la particion, copiado de read_mbr */
 void print_partition(PartitionTable *partition){
         printf("  Partition entry\n  First byte %02X\n", partition->first_byte);
         printf("  Comienzo de partición en CHS: %02X:%02X:%02X\n", partition->start_chs[0], partition->start_chs[1], partition->start_chs[2]);
@@ -190,6 +192,7 @@ int main() {
           bs.sector_size, SEEK_CUR);
 
     printf("Root dir_entries %d \n", bs.root_dir_entries);
+    
     for(i=0; i<bs.root_dir_entries; i++) {
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
@@ -198,6 +201,7 @@ int main() {
     printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
 
     int j;
+    
     //TODO Ver bien hasta donde deberia leer en esta parte... no es correcto root_dir_entries entiendo...
     for(j=0; j < bs.root_dir_entries; j++){
         fread(&entry, sizeof(entry), 1, in);
