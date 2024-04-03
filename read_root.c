@@ -87,13 +87,13 @@ int is_valid_filename(Fat12Entry *entry){
     }
     else{
         int i;
-        for(i = 0; i < 8; i++){
+        for(i = 0; i < 8; i++){ //Máximo 8 carateres para los nombres
             if(!is_valid_filename_character(&entry->filename[i])){
                 ret = 0;
                 break;
             }
         }
-        for(i = 0; i < 3; i++){
+        for(i = 0; i < 3; i++){ //Máximo 3 para extensiones
             if(!is_valid_filename_character(&entry->extension[i])){
                  ret = 0;
                   break;
@@ -110,21 +110,21 @@ void print_file(Fat12Entry *entry){
 
 void print_file_info(Fat12Entry *entry) {
     switch(entry->filename[0]) {
-    case 0x00:
-        return; // unused entry
-    case 0xE5:
+    case 0x00: //Entrada sin usar
+        return; 
+    case 0xE5: //Entrada borrada (tanto directorio como archivo)
         if(is_valid_filename(entry)){
             printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension);
             // print_file(entry);
         }
         return;
-    case 0x05:
+    case 0x05: //La entrada libre para uso
         if(is_valid_filename(entry)){
             printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension);
             // print_file(entry);
         }
         break;
-    case 0x2E:
+    case 0x2E: //Entrada es un directorio
         if(is_valid_filename(entry)){
             printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
             // printf("  Segundo byte: %02X\n", entry->filename[1]);
@@ -132,6 +132,7 @@ void print_file_info(Fat12Entry *entry) {
         }
         break;
     default:
+        // Aca se verifica si la entrada es un directorio o archivo 
         if(is_valid_filename(entry)){
 	    if (entry->attributes == 32) { // 32 es 20 es hexa
                 printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension);
@@ -201,7 +202,7 @@ int main() {
     printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
 
     int j;
-    
+
     //TODO Ver bien hasta donde deberia leer en esta parte... no es correcto root_dir_entries entiendo...
     for(j=0; j < bs.root_dir_entries; j++){
         fread(&entry, sizeof(entry), 1, in);
