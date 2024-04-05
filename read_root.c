@@ -202,9 +202,12 @@ int main() {
     printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
 
     int j;
-
-    //TODO Ver bien hasta donde deberia leer en esta parte... no es correcto root_dir_entries entiendo...
-    for(j=0; j < bs.root_dir_entries; j++){
+    int bytes_read = ftell(in); //los bytes que ya lei
+    int total_bytes = (bs.num_of_sectors_in_fs * bs.sector_size); //la cantidad total de bytes
+    int bytes_left = total_bytes - bytes_read; //los bytes que me faltan leer
+    int entries_left = bytes_left / 32; //las entradas que me faltan leer. Divido por 32 ya que una directory entry es de 32 bytes
+    printf("Entradas faltantes: %d\n", entries_left);
+    for(j=0; j < entries_left; j++){
         fread(&entry, sizeof(entry), 1, in);
         print_file_info(&entry);
     }
