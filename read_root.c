@@ -60,47 +60,11 @@ typedef struct {
     unsigned int file_size;
 } __attribute((packed)) Fat12Entry;
 
-/* Devuelve 1 si es valido, 0 si es invalido
-TODO ver si este criterio mas el de is_valid_filename es suficiente para identificar archivos/directorios */
-int is_valid_filename_character(unsigned char *c){
-    int ret = 1;
-    char padding = 0x20;     //caracter que representa el espacio con el que se rellena el filename/extension del archivo/directorio
-    char first_lowercase_letter = 0x61;
-    char last_uppercase_letter = 0x7A;
-    
-    //si no es paddin y esta dentro del rango de letras minusculas... mejorar la logica para que se lea mejor
-    if(*c != padding && (*c >= first_lowercase_letter && *c <= last_uppercase_letter)){
-        ret = 0;
-    }
-    return ret;
-}
-
-/* Devuelve 1 si es valido, 0 si es invalido
-    Sabemos que una entrada del directory entry, dentro de filename y extension no puede terminar en 0x00 o null, 
-    entonces usamos eso para filtrar los que no sean archivos/directorios, ademas de que tienen que estar todos en uppercase */
-int is_valid_filename(Fat12Entry *entry){
-    
-    // printf("ANALIZANDO: [%.8s.%.3s]\n", entry->filename, entry->extension);
-    int ret = 1;
-    if(entry->extension[2] == 0x00){
-        ret = 0;
-    }
-    else{
-        int i;
-        for(i = 0; i < 8; i++){ //Máximo 8 carateres para los nombres
-            if(!is_valid_filename_character(&entry->filename[i])){
-                ret = 0;
-                break;
-            }
-        }
-        for(i = 0; i < 3; i++){ //Máximo 3 para extensiones
-            if(!is_valid_filename_character(&entry->extension[i])){
-                 ret = 0;
-                  break;
-            }
-        }
-    }
-    return ret;
+/* Devuelve 1 si es archivo o directorio, 0 si no
+    para obtener este dato, se verifica que el dato del atributo indique una de estas dos posibilidades.
+    Para archivos, el valor de este byte sera 32 (0x20); y para directorios sera 16 (0x10)*/
+int is_file_or_dir(Fat12Entry *entry){
+    return entry->attributes == 32 || entry->attributes == 16;
 }
 
 void print_file(Fat12Entry *entry){
@@ -113,35 +77,30 @@ void print_file_info(Fat12Entry *entry) {
     case 0x00: //Entrada sin usar
         return; 
     case 0xE5: //Entrada borrada (tanto directorio como archivo)
-        if(is_valid_filename(entry)){
+        if (is_file_or_dir(entry)){
             printf("Archivo borrado: [?%.7s.%.3s]\n", entry->filename + 1, entry->extension);
-            // print_file(entry);
         }
         return;
     case 0x05: //La entrada libre para uso
-        if(is_valid_filename(entry)){
+        if (is_file_or_dir(entry)){
             printf("Archivo que comienza con 0xE5: [%c%.7s.%.3s]\n", 0xE5, entry->filename + 1, entry->extension);
-            // print_file(entry);
         }
         break;
     case 0x2E: //Entrada es un directorio
-        if(is_valid_filename(entry)){
+        if (is_file_or_dir(entry)){
             printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
-            // printf("  Segundo byte: %02X\n", entry->filename[1]);
-            // print_file(entry);
         }
         break;
     default:
-        // Aca se verifica si la entrada es un directorio o archivo 
-        if(is_valid_filename(entry)){
-	    if (entry->attributes == 32) { // 32 es 20 es hexa
-                printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension);
-		contador_archivos++;
-	    }
-	    if (entry->attributes == 16) { // 16 es 10 en hexa
-	         printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
-	    }
-             //print_file(entry);
+        if (is_file_or_dir(entry)){
+            // Aca se verifica si la entrada es un directorio o archivo 
+            if (entry->attributes == 32) { // 32 es 20 es hexa
+                    printf("Archivo: [%.8s.%.3s]\n", entry->filename, entry->extension);
+            contador_archivos++;
+            }
+            if (entry->attributes == 16) { // 16 es 10 en hexa
+                printf("Directorio: [%.8s.%.3s]\n", entry->filename, entry->extension);
+            }
         }
         return;
     }
