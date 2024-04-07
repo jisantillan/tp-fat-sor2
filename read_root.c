@@ -145,7 +145,7 @@ int main() {
 	//{...} Leo boot sector
     fread(&bs, sizeof(Fat12BootSector), 1, in);//Completar luego...
 
-    printf("En  0x%X, sector size %d, FAT size %d sectors, %d FATs, position to start reading: %d\n\n", 
+    printf("En  0x%lX, sector size %d, FAT size %d sectors, %d FATs, position to start reading: %d\n\n", 
            ftell(in), bs.sector_size, bs.fat_size_sectors, bs.number_of_fats, ((bs.reserved_sectors-1 + bs.fat_size_sectors * bs.number_of_fats) * bs.sector_size));
 
     fseek(in, (bs.reserved_sectors-1 + bs.fat_size_sectors * bs.number_of_fats) *
@@ -158,7 +158,7 @@ int main() {
         print_file_info(&entry);
     }
 
-    printf("\nLeido Root directory, ahora en 0x%X\n", ftell(in));
+    printf("\nLeido Root directory, ahora en 0x%lX\n", ftell(in));
 
     int j;
     int bytes_read = ftell(in); //los bytes que ya lei
