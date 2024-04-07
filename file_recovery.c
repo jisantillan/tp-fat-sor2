@@ -23,16 +23,16 @@ typedef struct
     unsigned short number_of_reserved_sectors; 	// 2 bytes
     unsigned char number_of_fats; 				// 1 byte
 	unsigned short root_dir_entries;			// 2 bytes
-	unsigned short num_sectors; 				// 2 bytes. Si 2B(posicion de este campo) no es lo suficientemente grande, ajústelo a 0 y use el valor 4 B en los bytes 32-35 a continuación
+	unsigned short num_sectors; 				// 2 bytes.
     unsigned char media_type; 					// 1 byte. (0xf0 = disco extraíble, 0xf8 = disco fijo).
     unsigned short size_fat_in_sectors; 		// 2 bytes
     unsigned short sectors_per_track; 			// 2 bytes
     unsigned short num_headers; 				// 2 bytes
     unsigned int count_of_hidden_sectors; 		// 4 bytes 
-    unsigned int total_logical_sectors; 		// 4 bytes. Este campo será 0 si el campo 2B anterior (bytes 19-20) no es cero.
+    unsigned int total_logical_sectors; 		// 4 bytes.
     unsigned char num_physical_drive; 			// 1 byte.
     unsigned char ignore; 						// 1 byte
-    unsigned char boot_signature; // 1 byte. Firma de arranque extendida para validar los siguientes tres campos (0x29)
+    unsigned char boot_signature; // 1 byte. Firma de arranque extendida
 
     char volume_id[4];
     char volume_label[11];
@@ -45,10 +45,10 @@ typedef struct
 // Definimos la estructura del Directory entry. 32 bytes cada uno.
 typedef struct 
 {
-    unsigned char filename[1]; // IMPORTANTE : Primer carácter del nombre de archivo (ASCII) o estado de asignación (0x00 sin asignar, 0xE5 eliminado) 
+    unsigned char filename[1]; //Primer carácter del nombre de archivo o el estado de asignación (0x00 sin asignar, 0xE5 eliminado) 
     unsigned char name[7];
     unsigned char extension[3];
-    unsigned char attributes[1]; 			// IMPORTANTE : 0x10 -> Es un directorio. 0x20 -> Es un archivo.
+    unsigned char attributes[1]; 			//0x10 = Directorio  // 0x20 = Archivo.
     unsigned char reserved[1];
     unsigned char created_time_in_seconds[1];
     unsigned short created_time_in_hours_minutes_seconds; 	
