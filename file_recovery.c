@@ -51,14 +51,14 @@ typedef struct
     unsigned char attributes[1]; 			// IMPORTANTE : 0x10 -> Es un directorio. 0x20 -> Es un archivo.
     unsigned char reserved[1];
     unsigned char created_time_in_seconds[1];
-    unsigned short created_time_in_hours_minutes_seconds; 	// 2 bytes
-    unsigned short created_day; 							// 2 bytes
-    unsigned short accessed_day; 							// 2 bytes
-    unsigned short high_first_cluster_address; 				// 2 bytes (es 0 para FAT12)
-    unsigned short written_time_in_hours_minutes_seconds; 	// 2 bytes
-    unsigned short written_day; 							// 2 bytes
-    unsigned short low_first_cluster_address; 				// 2 bytes
-    unsigned int size_of_file; 								// 4 bytes
+    unsigned short created_time_in_hours_minutes_seconds; 	
+    unsigned short created_day; 							
+    unsigned short accessed_day; 							
+    unsigned short high_first_cluster_address; 				
+    unsigned short written_time_in_hours_minutes_seconds; 	
+    unsigned short written_day; 							
+    unsigned short low_first_cluster_address; 				
+    unsigned int size_of_file; 								
 
 } __attribute((packed)) Fat12Entry;
 
@@ -66,10 +66,10 @@ void recover_file(unsigned short pointer)
 {
     FILE * in = fopen("test.img", "r+");
 
-    char letra[1] ="B";
+    char charAux[1] ="L";
     fseek(in, pointer , SEEK_SET);
-    fwrite(letra, sizeof(char), sizeof(letra), in);
-    printf("Archivo restaurado correctamente!\n");
+    fwrite(charAux, sizeof(char), sizeof(charAux), in);
+    printf("Archivo se ha restaurado correctamente!\n");
             
     fclose(in);
 }
@@ -115,25 +115,21 @@ int main()
     
     if(i == 4) 
     {
-        printf("No encontrado filesystem FAT12, saliendo...\n");
+        printf("Exception: No se ha encontrado el filesystem FAT12\n");
         return -1;
     }
     
     fseek(in, 0, SEEK_SET);
-    //Leemos un elemento y lo estructuramos a la variable bs.
+
     fread(&bs, sizeof(Fat12BootSector), 1, in);
 
     printf("#####################################################\n");
-    //SEEK_CUR : Posición actual del puntero de archivo. En este caso al final del bootSector y comienzo del FAT.
-    //fseek(in, (1-1+2*2)*512, SEEK_CUR) -> fseek(in,2048,SEEK_CUR) - > ftell(in))= 2560.
-    //Se posiciona en el sector Root.
+
     fseek(in, (bs.number_of_reserved_sectors-1 + bs.size_fat_in_sectors * bs.number_of_fats) *
           bs.sector_size, SEEK_CUR);
     
-    //Guarda en la estructura entry las 512 entradas de directorio, e imprime el tipo y nombre de los archivos.
     for(i=0; i<bs.root_dir_entries; i++) 
     {
-        //printf("Primer byte 0x%lX\n", ftell(in));
         pointer_recover_file = ftell(in);
         
         fread(&entry, sizeof(entry), 1, in);
