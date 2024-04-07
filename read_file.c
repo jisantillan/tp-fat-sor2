@@ -62,54 +62,11 @@ typedef struct
     unsigned int file_size;
 } __attribute((packed)) Fat12Entry;
 
-// Devuelve 1 si es valido, 0 si es invalido
-// TODO ver si este criterio mas el de is_valid_filename es suficiente para identificar archivos/directorios
-int is_valid_filename_character(unsigned char *c)
-{
-    int ret = 1;
-    char padding = 0x20; // caracter que representa el espacio con el que se rellena el filename/extension del archivo/directorio
-    char first_lowercase_letter = 0x61;
-    char last_uppercase_letter = 0x7A;
-    // si no es paddin y esta dentro del rango de letras minusculas... mejorar la logica para que se lea mejor
-    if (*c != padding && (*c >= first_lowercase_letter && *c <= last_uppercase_letter))
-    {
-        ret = 0;
-    }
-    return ret;
-}
-
-// Devuelve 1 si es valido, 0 si es invalido
-// Sabemos que una entrada del directory entry, dentro de filename y extension no puede terminar en 0x00 o null, entonces usamos eso para filtrar los que no sean
-// archivos/directorios, ademas de que tienen que estar todos en uppercase
-int is_valid_filename(Fat12Entry *entry)
-{
-    // printf("ANALIZANDO: [%.8s.%.3s]\n", entry->filename, entry->extension);
-    int ret = 1;
-    if (entry->extension[2] == 0x00)
-    {
-        ret = 0;
-    }
-    else
-    {
-        int i;
-        for (i = 0; i < 8; i++)
-        {
-            if (!is_valid_filename_character(&entry->filename[i]))
-            {
-                ret = 0;
-                break;
-            }
-        }
-        for (i = 0; i < 3; i++)
-        {
-            if (!is_valid_filename_character(&entry->extension[i]))
-            {
-                ret = 0;
-                break;
-            }
-        }
-    }
-    return ret;
+/* Devuelve 1 si es archivo o directorio, 0 si no
+    para obtener este dato, se verifica que el dato del atributo indique una de estas dos posibilidades.
+    Para archivos, el valor de este byte sera 32 (0x20); y para directorios sera 16 (0x10)*/
+int is_file_or_dir(Fat12Entry *entry){
+    return entry->attributes == 32 || entry->attributes == 16;
 }
 
 void read_and_print_file(unsigned short file_position, unsigned int file_size)
@@ -154,7 +111,7 @@ void print_file_info(Fat12Entry *entry, unsigned short first_cluster, unsigned s
         case 0x10: // subdir
             break;
         case 0x20:
-            if (is_valid_filename(entry))
+            if (is_file_or_dir(entry))
             {
                 printf("Archivo: [%.8s.%.3s]", entry->filename, entry->extension);
                 read_and_print_file(get_file_position(entry, first_cluster, cluster_size), entry->file_size);
