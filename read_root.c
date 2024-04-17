@@ -19,7 +19,6 @@ typedef struct {
     unsigned char jmp[3];
     char oem[8];
     unsigned short sector_size;
-	// {...} COMPLETAR
     unsigned char sectors_per_cluster;
     unsigned short reserved_sectors;
     unsigned char number_of_fats;
@@ -32,9 +31,8 @@ typedef struct {
     unsigned int num_of_sectors_before_start_partition;
     unsigned int fs_sectors;
     char drive_number;
-    char not_used; //xd
+    char not_used;
     char extended_boot_signature;
-    //
     unsigned int volume_id;
     char volume_label[11];
     char fs_type[8];
@@ -43,7 +41,6 @@ typedef struct {
 } __attribute((packed)) Fat12BootSector;
 
 typedef struct {
-	// {...} COMPLETAR
     // char first_char_filename;
     unsigned char filename[8];
     char extension[3];
@@ -123,8 +120,7 @@ int main() {
     Fat12BootSector bs;
     Fat12Entry entry;
 
-	//{...} Completar
-    fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones. Completar ...
+    fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones. 
     fread(pt, sizeof(PartitionTable), 4, in); // leo entradas
 
     for(i=0; i<4; i++) {
@@ -142,8 +138,8 @@ int main() {
     }
 
     fseek(in, 0, SEEK_SET);
-	//{...} Leo boot sector
-    fread(&bs, sizeof(Fat12BootSector), 1, in);//Completar luego...
+	//Leo boot sector
+    fread(&bs, sizeof(Fat12BootSector), 1, in);
 
     printf("En  0x%lX, sector size %d, FAT size %d sectors, %d FATs, position to start reading: %d\n\n", 
            ftell(in), bs.sector_size, bs.fat_size_sectors, bs.number_of_fats, ((bs.reserved_sectors-1 + bs.fat_size_sectors * bs.number_of_fats) * bs.sector_size));

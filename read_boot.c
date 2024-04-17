@@ -16,7 +16,6 @@ typedef struct {
     unsigned char jmp[3];
     char oem[8];
     unsigned short sector_size; // 2 bytes
-	// {...}  COMPLETAR
     unsigned char sectors_per_cluster;
     unsigned short reserved_area_size;
     unsigned char num_of_fat;
@@ -29,9 +28,8 @@ typedef struct {
     unsigned int num_of_sectors_before_start_partition;
     unsigned int fs_sectors;
     unsigned char drive_number;
-    unsigned char not_used; //xd
+    unsigned char not_used;
     char extended_boot_signature;
-    //
     unsigned int volume_id;
     char volume_label[11];
     char fs_type[8]; // Type en ascii
@@ -46,8 +44,7 @@ int main() {
     Fat12BootSector bs;
     
     
-    //lo hardcodee, ver forma de obtener el 446
-    fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones. Completar ...
+    fseek(in, partition_table_start, SEEK_SET); // Ir al inicio de la tabla de particiones.
     fread(pt, sizeof(PartitionTable), 4, in); // leo entradas 
     
     for(i=0; i<4; i++) {        
@@ -69,7 +66,6 @@ int main() {
     printf("  Jump code: %02X:%02X:%02X\n", bs.jmp[0], bs.jmp[1], bs.jmp[2]);
     printf("  OEM code: [%.8s]\n", bs.oem);
     printf("  sector_size: %d\n", bs.sector_size);
-	// {...} COMPLETAR
     printf("  Sectors per cluster: %d\n", bs.sectors_per_cluster);
     printf("  Reserved area size, in sectors: %d\n", bs.reserved_area_size);
     printf("  Number of FATs: %d\n", bs.num_of_fat);
@@ -84,7 +80,6 @@ int main() {
     printf("  BIOS INT 13h drive number: %02X\n", bs.drive_number);
     printf("  Byte not used: %02X\n", bs.not_used);
     printf("  Extended boot signature: %02X\n", bs.extended_boot_signature);
-    //
     printf("  volume_id: 0x%08X\n", bs.volume_id);
     printf("  Volume label: [%.11s]\n", bs.volume_label);
     printf("  Filesystem type: [%.8s]\n", bs.fs_type);
